@@ -130,7 +130,7 @@ async function sendMessage(id, title, price, store, link) {
 
 function connect() {
   try {
-    conn = new Client({connectionString: process.env.DATABASE_URL});
+    conn = new Client({connectionString: "postgres://orpphmrnkjqkto:66c684e4944b3f43bde35966ca862a4fcd00b98201217e336ffcc5bb9229539c@ec2-107-20-104-234.compute-1.amazonaws.com:5432/d99had9kr8arqi"});
     conn.connect();
   } catch (error) {
     console.log(error);
