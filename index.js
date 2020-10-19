@@ -2,15 +2,25 @@ var Crawler = require("crawler");
 const cheerio = require('cheerio');
 const cron = require('node-cron');
 const express = require('express');
-const Discord = require('discord.js');
-const config = require('./config.json');
 const { Webhook, MessageBuilder } = require('discord-webhook-node');
-
 const hook = new Webhook({
-  url: config.CHAT_WEBHOOK,
-  throwErrors: false,
-  retryOnLimit: false
+  url: process.env.CHAT_WEBHOOK,
+  throwErrors: true,
+  retryOnLimit: true
 });
+const { Pool, Client } = require('pg')
+let conn;
+let pool;
+
+const HOT_KEYS = [
+  "placa de vídeo", "placa mãe", "ssd",
+  "processador", "celular", "smarphone",
+  "caixa de som", "jogo", "fonte", "notebook",
+  "teclado", "mouse", "gabinete", "hd",
+  "kit upgrade","ram", "placa-mãe", "smart tv",
+  "pilha", "headset", "monitor", "mousepad", 
+  "headphone", "pc gamer"];
+
 hook.setUsername('Promo Bot');
 
 app = express();
@@ -22,6 +32,8 @@ app = express();
 //   | | hour
 //   | minute
 //   second ( optional )
+
+connect();
 
 var c = new Crawler({
   jQuery: true,
@@ -37,6 +49,7 @@ var c = new Crawler({
       offerCards.forEach(card => {
         if (card.attribs['class'] !== 'card-banner') {
           let offer = {
+            id: '',
             link: '',
             description: '',
             lowPrice: '',
@@ -72,33 +85,68 @@ var c = new Crawler({
             }
             else if (cardChild.attribs && cardChild.attribs['class'] === 'js-pr__tracking--click') {
               offer.link = `${'https://www.promobit.com.br'}${cardChild.attribs.href}`;
+              let promoLink = cardChild.attribs.href.split('-')
+              offer.id = `${promoLink[promoLink.length-1]}`;
             }
           });
           if (offer.link) {
-            offers.push(offer);
+            HOT_KEYS.forEach(key => {
+              if (offer.description.toLowerCase().includes(key)) {
+                offers.push(offer);
+              }
+            })
           }
         }
       });
       //TODO: Adicionar tratamento de "categorias".
       offers.forEach(offer => {
-        sendMessage(offer.description, offer.lowPrice, offer.store, offer.link);
+        setTimeout(() => {
+          sendMessage(offer.id, offer.description, offer.lowPrice, offer.store, offer.link);
+        }, 1000);
       })
     }
     done();
   }
 });
 
-function sendMessage(title, price, store, link) {
-  const webhookClient = new Discord.WebhookClient(config.WEBHOOK_ID, config.CHAT_WEBHOOK);
-  console.log(webhookClient);
+async function sendMessage(id, title, price, store, link) {
+  
+  const promoChecked = await findPromo(id);
+  if (promoChecked) return;
 
   const embed = new MessageBuilder()
     .setTitle(title)
+    .setURL(link)
     .setDescription(`Promoção cadastrada com valor de R$ ${price}, na loja ${store}`)
-    .setFooter(`Link da promo: ${link}`)
+    .setTimestamp()
     .setColor('#0099ff');
+  try {
+    hook.send(embed);
+    insert(id, link);
+  } catch (error) {
+    console.error(error);
+  }
+}
 
-  hook.send(embed);
+function connect() {
+  conn = new Client({connectionString: process.env.DATABASE_URL});
+  try {
+    conn.connect();
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function insert(id, link) {
+  let { rows } = await conn.query(
+    `insert into ${process.env.POSTGRE_TABLE} (id, link, created_at) values (${id}, ${link}, ${Date.now()}) returning *`
+  );
+  return rows;
+}
+
+async function findPromo(id) {
+  let { rows } = await conn.query(`select * from ${process.env.POSTGRE_TABLE} where id = ${id}`);
+  return rows;
 }
 
 cron.schedule('* * 1 * *', function() {
