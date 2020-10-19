@@ -33,16 +33,15 @@ app = express();
 //   | minute
 //   second ( optional )
 
-connect();
-
 var c = new Crawler({
   jQuery: true,
   maxConnections : 10,
   // This will be called for each crawled page
-  callback : function (error, res, done) {
+  callback : async function (error, res, done) {
     if(error){
-        console.log(error);
+      console.log(error);
     } else {
+      await connect();
       const $ = cheerio.load(res.body);
       var offerCards = $(".pr-tl-card").toArray();
       var offers = [];
@@ -110,7 +109,6 @@ var c = new Crawler({
 });
 
 async function sendMessage(id, title, price, store, link) {
-  
   const promoChecked = await findPromo(id);
   if (promoChecked) return;
 
@@ -128,10 +126,10 @@ async function sendMessage(id, title, price, store, link) {
   }
 }
 
-function connect() {
+async function connect() {
   try {
-    conn = new Client({connectionString: "postgres://orpphmrnkjqkto:66c684e4944b3f43bde35966ca862a4fcd00b98201217e336ffcc5bb9229539c@ec2-107-20-104-234.compute-1.amazonaws.com:5432/d99had9kr8arqi"});
-    conn.connect();
+    conn = await new Client({connectionString: "postgres://orpphmrnkjqkto:66c684e4944b3f43bde35966ca862a4fcd00b98201217e336ffcc5bb9229539c@ec2-107-20-104-234.compute-1.amazonaws.com:5432/d99had9kr8arqi"});
+    await conn.connect();
   } catch (error) {
     console.log(error);
   }
@@ -141,18 +139,26 @@ async function insert(id, link) {
   if (!conn) {
     return;
   }
-  let { rows } = await conn.query(
-    `insert into ${process.env.POSTGRE_TABLE} (id, link, created_at) values (${id}, ${link}, ${Date.now()}) returning *`
-  );
-  return rows;
+  try {
+    let { rows } = await conn.query(
+      `insert into ${process.env.POSTGRE_TABLE} (id, link, created_at) values (${id}, ${link}, ${Date.now()}) returning *`
+    );
+    return rows;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 async function findPromo(id) {
   if (!conn) {
     return;
   }
-  let { rows } = await conn.query(`select * from ${process.env.POSTGRE_TABLE} where id = ${id}`);
-  return rows;
+  try {
+    let { rows } = await conn.query(`select * from ${process.env.POSTGRE_TABLE} where id = ${id}`);
+    return rows;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 cron.schedule('* * 1 * *', function() {
