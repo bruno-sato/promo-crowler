@@ -138,6 +138,9 @@ function connect() {
 }
 
 async function insert(id, link) {
+  if (!conn) {
+    return;
+  }
   let { rows } = await conn.query(
     `insert into ${process.env.POSTGRE_TABLE} (id, link, created_at) values (${id}, ${link}, ${Date.now()}) returning *`
   );
@@ -145,6 +148,9 @@ async function insert(id, link) {
 }
 
 async function findPromo(id) {
+  if (!conn) {
+    return;
+  }
   let { rows } = await conn.query(`select * from ${process.env.POSTGRE_TABLE} where id = ${id}`);
   return rows;
 }
