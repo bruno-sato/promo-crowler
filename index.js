@@ -103,7 +103,7 @@ function sendMessage(title, price, store, link) {
 
 cron.schedule('* * 1 * *', function() {
   console.log('running a task every hour');
-  c.queue('https://www.promobit.com.br/');
+  // c.queue('https://www.promobit.com.br/');
 });
 c.queue('https://www.promobit.com.br/');
 
