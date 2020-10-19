@@ -129,8 +129,8 @@ async function sendMessage(id, title, price, store, link) {
 }
 
 function connect() {
-  conn = new Client({connectionString: process.env.DATABASE_URL});
   try {
+    conn = new Client({connectionString: process.env.DATABASE_URL});
     conn.connect();
   } catch (error) {
     console.log(error);
