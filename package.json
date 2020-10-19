@@ -1,0 +1,23 @@
+{
+  "name": "promo-crowler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bruno-sato/promo-crowler.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bruno-sato/promo-crowler/issues"
+  },
+  "homepage": "https://github.com/bruno-sato/promo-crowler#readme",
+  "dependencies": {
+    "crawler": "^1.2.2",
+    "jsdom": "^16.4.0"
+  }
+}
