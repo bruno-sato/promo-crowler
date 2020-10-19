@@ -1,7 +1,28 @@
 var Crawler = require("crawler");
 const cheerio = require('cheerio');
+const cron = require('node-cron');
+const express = require('express');
+const Discord = require('discord.js');
+const config = require('./config.json');
+const { Webhook, MessageBuilder } = require('discord-webhook-node');
 
- 
+const hook = new Webhook({
+  url: config.CHAT_WEBHOOK,
+  throwErrors: false,
+  retryOnLimit: false
+});
+hook.setUsername('Promo Bot');
+
+app = express();
+// * * * * * *
+//   | | | | | |
+//   | | | | | day of week
+//   | | | | month
+//   | | | day of month
+//   | | hour
+//   | minute
+//   second ( optional )
+
 var c = new Crawler({
   jQuery: true,
   maxConnections : 10,
@@ -57,10 +78,33 @@ var c = new Crawler({
             offers.push(offer);
           }
         }
-        // console.log(offers);
       });
+      //TODO: Adicionar tratamento de "categorias".
+      offers.forEach(offer => {
+        sendMessage(offer.description, offer.lowPrice, offer.store, offer.link);
+      })
     }
     done();
   }
 });
+
+function sendMessage(title, price, store, link) {
+  const webhookClient = new Discord.WebhookClient(config.WEBHOOK_ID, config.CHAT_WEBHOOK);
+  console.log(webhookClient);
+
+  const embed = new MessageBuilder()
+    .setTitle(title)
+    .setDescription(`Promoção cadastrada com valor de R$ ${price}, na loja ${store}`)
+    .setFooter(`Link da promo: ${link}`)
+    .setColor('#0099ff');
+
+  hook.send(embed);
+}
+
+cron.schedule('* * 1 * *', function() {
+  console.log('running a task every hour');
+  c.queue('https://www.promobit.com.br/');
+});
 c.queue('https://www.promobit.com.br/');
+
+app.listen(3000);
