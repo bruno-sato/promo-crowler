@@ -19,7 +19,8 @@ const HOT_KEYS = [
   "teclado", "mouse", "gabinete", "hd",
   "kit upgrade","memória ram", "placa-mãe", "smart tv",
   "pilha", "headset", "monitor", "mousepad", 
-  "headphone", "pc gamer", 'fone de ouvido', 'smartwatch'];
+  "headphone", "pc gamer", 'fone de ouvido', 'smartwatch',
+  "ddr4", "computador"];
 
 const EXCLUDE_KEYS = [
   "panela", "panelas"
