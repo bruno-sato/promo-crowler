@@ -198,4 +198,4 @@ cron.schedule('* 5 * * *', function() {
 });
 c.queue('https://www.promobit.com.br/');
 
-app.listen(3000);
+app.listen(process.env.PORT || 3000);
