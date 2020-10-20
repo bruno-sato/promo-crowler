@@ -8,18 +8,19 @@ const hook = new Webhook({
   throwErrors: true,
   retryOnLimit: true
 });
-const { Pool, Client } = require('pg')
+const { Client } = require('pg')
 let conn;
 let pool;
 
 const HOT_KEYS = [
   "placa de vídeo", "placa mãe", "ssd",
-  "processador", "celular", "smarphone",
+  "processador", "celular", "smartphone",
   "caixa de som", "jogo", "fonte", "notebook",
   "teclado", "mouse", "gabinete", "hd",
-  "kit upgrade","ram", "placa-mãe", "smart tv",
+  "kit upgrade","memória ram", "placa-mãe", "smart tv",
   "pilha", "headset", "monitor", "mousepad", 
-  "headphone", "pc gamer"];
+  "headphone", "pc gamer", 'fone de ouvido', 'smartwatch',
+  "ddr4", "computador"];
 
 const EXCLUDE_KEYS = [
   "panela", "panelas"
@@ -90,32 +91,44 @@ var c = new Crawler({
               offer.link = `${'https://www.promobit.com.br'}${cardChild.attribs.href}`;
               let promoLink = cardChild.attribs.href.split('-')
               offer.id = `${promoLink[promoLink.length-1]}`;
+              cardChild.children.forEach(cardImage => {
+                if (cardImage.attribs && cardImage.attribs.class === 'product_image') {
+                  cardImage.children.forEach(imageTag => {
+                    if (imageTag.name === 'img' && imageTag.type === 'tag') {
+                      offer.imageLink = imageTag.attribs['data-lazy'].substring(2, imageTag.attribs['data-lazy'].length);
+                    }
+                  });
+                }
+              });
             }
           });
           if (offer.link) {
             let isValidProduct = false;
+            // console.log(offer.description.toLowerCase());
             for (const key of HOT_KEYS) {
               if (offer.description.toLowerCase().includes(key)) {
                 isValidProduct = true;
-                return;
+                break;
               }
             }
+            // console.log(isValidProduct);
             for (const key of EXCLUDE_KEYS) {
               if (offer.description.toLowerCase().includes(key)) {
                 isValidProduct = false;
-                return;
+                break;
               }
             }
+            // console.log(isValidProduct);
             if (isValidProduct) {
               offers.push(offer);
             }
           }
         }
       });
-      console.log(offers);
+      // console.log(offers);
       offers.forEach(offer => {
         setTimeout(() => {
-          sendMessage(offer.id, offer.description, offer.lowPrice, offer.store, offer.link);
+          sendMessage(offer.id, offer.description, offer.lowPrice, offer.store, offer.link, offer.imageLink);
         }, 1000);
       });
     }
@@ -123,27 +136,37 @@ var c = new Crawler({
   }
 });
 
-async function sendMessage(id, title, price, store, link) {
+async function sendMessage(id, title, price, store, link, imageLink) {
   const promoChecked = await findPromo(id);
-  if (promoChecked) return;
-
-  const embed = new MessageBuilder()
-    .setTitle(title)
-    .setURL(link)
-    .setDescription(`Promoção cadastrada com valor de R$ ${price}, na loja ${store}`)
-    .setTimestamp()
-    .setColor('#0099ff');
-  try {
-    insert(id, link);
-    hook.send(embed);
-  } catch (error) {
-    console.error(error);
+  if (promoChecked.rowCount > 0) {
+    return
+  } else {
+    const embed = new MessageBuilder()
+      .setTitle(title)
+      .setURL(link)
+      .addField('Valor', `R$ ${price}`, true)
+      .addField('Loja', store, true)
+      .setTimestamp()
+      .setThumbnail(`https://${imageLink}`)
+      .setColor('#0099ff');
+    try {
+      insert(id, link);
+      hook.send(embed);
+    } catch (error) {
+      console.error(error);
+    }
   }
+
 }
 
 async function connect() {
   try {
-    conn = await new Client({connectionString: process.env.DATABASE_URL});
+    conn = await new Client({
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    });
     await conn.connect();
   } catch (error) {
     console.log(error);
@@ -162,20 +185,17 @@ function insert(id, link) {
 }
 
 function findPromo(id) {
-  conn.query({
-    text: `select * from promo_read where id = $1`,
-    values: [id]
-  }).then(res => {
-    return res;
-  }).catch(error => {
-    console.error(error);
-  });
+  return conn.query(`select * from promo_read where id = ${id}`)
+    .then(res => {
+      return res;
+    }).catch(error => {
+      console.error(error);
+    });
 }
 
-// cron.schedule('* 5 * * *', function() {
-//   console.log('running a task every hour');
-//   c.queue('https://www.promobit.com.br/');
-// });
-// c.queue('https://www.promobit.com.br/');
+cron.schedule('* 5 * * *', function() {
+  c.queue('https://www.promobit.com.br/');
+});
+c.queue('https://www.promobit.com.br/');
 
 app.listen(3000);
