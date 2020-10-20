@@ -192,10 +192,6 @@ function findPromo(id) {
       console.error(error);
     });
 }
-
-cron.schedule('* 5 * * *', function() {
-  c.queue('https://www.promobit.com.br/');
-});
 c.queue('https://www.promobit.com.br/');
 
 app.listen(process.env.PORT || 3000);
