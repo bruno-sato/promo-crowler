@@ -135,24 +135,26 @@ async function connect() {
   }
 }
 
-async function insert(id, link) {
-  try {
-    let { rows } = await conn.query(
-      `insert into ${process.env.POSTGRE_TABLE} (id, link, created_at) values (${id}, ${link}, ${Date.now()})`
-    );
-    return rows;
-  } catch (error) {
+function insert(id, link) {
+  conn.query({
+    text: `insert into promo_read(id, link, created_at) values ($1, $2, $3)`,
+    values: [id, link, Date.now()]
+  }).then(res => {
+    return res;
+  }).catch(error => {
     console.error(error);
-  }
+  });
 }
 
-async function findPromo(id) {
-  try {
-    let { rows } = await conn.query(`select * from ${process.env.POSTGRE_TABLE} where id = ${id}`);
-    return rows;
-  } catch (error) {
+function findPromo(id) {
+  conn.query({
+    text: `select * from promo_read where id = $1`,
+    values: [id]
+  }).then(res => {
+    return res;
+  }).catch(error => {
     console.error(error);
-  }
+  });
 }
 
 cron.schedule('* * 1 * *', function() {
