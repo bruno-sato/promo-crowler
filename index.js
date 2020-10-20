@@ -8,7 +8,7 @@ const hook = new Webhook({
   throwErrors: true,
   retryOnLimit: true
 });
-const { Pool, Client } = require('pg')
+const { Client } = require('pg')
 let conn;
 let pool;
 
@@ -91,6 +91,15 @@ var c = new Crawler({
               offer.link = `${'https://www.promobit.com.br'}${cardChild.attribs.href}`;
               let promoLink = cardChild.attribs.href.split('-')
               offer.id = `${promoLink[promoLink.length-1]}`;
+              cardChild.children.forEach(cardImage => {
+                if (cardImage.attribs && cardImage.attribs.class === 'product_image') {
+                  cardImage.children.forEach(imageTag => {
+                    if (imageTag.name === 'img' && imageTag.type === 'tag') {
+                      offer.imageLink = imageTag.attribs['data-lazy'].substring(2, imageTag.attribs['data-lazy'].length);
+                    }
+                  });
+                }
+              });
             }
           });
           if (offer.link) {
@@ -119,7 +128,7 @@ var c = new Crawler({
       // console.log(offers);
       offers.forEach(offer => {
         setTimeout(() => {
-          sendMessage(offer.id, offer.description, offer.lowPrice, offer.store, offer.link);
+          sendMessage(offer.id, offer.description, offer.lowPrice, offer.store, offer.link, offer.imageLink);
         }, 1000);
       });
     }
@@ -127,7 +136,7 @@ var c = new Crawler({
   }
 });
 
-async function sendMessage(id, title, price, store, link) {
+async function sendMessage(id, title, price, store, link, imageLink) {
   const promoChecked = await findPromo(id);
   if (promoChecked.rowCount > 0) {
     return
@@ -138,6 +147,7 @@ async function sendMessage(id, title, price, store, link) {
       .addField('Valor', `R$ ${price}`, true)
       .addField('Loja', store, true)
       .setTimestamp()
+      .setThumbnail(`https://${imageLink}`)
       .setColor('#0099ff');
     try {
       insert(id, link);
