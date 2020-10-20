@@ -21,6 +21,10 @@ const HOT_KEYS = [
   "pilha", "headset", "monitor", "mousepad", 
   "headphone", "pc gamer"];
 
+const EXCLUDE_KEYS = [
+  "panela", "panelas"
+]
+
 hook.setUsername('Promo Bot');
 
 app = express();
@@ -89,11 +93,22 @@ var c = new Crawler({
             }
           });
           if (offer.link) {
-            HOT_KEYS.forEach(key => {
+            let isValidProduct = false;
+            for (const key of HOT_KEYS) {
               if (offer.description.toLowerCase().includes(key)) {
-                offers.push(offer);
+                isValidProduct = true;
+                return;
               }
-            })
+            }
+            for (const key of EXCLUDE_KEYS) {
+              if (offer.description.toLowerCase().includes(key)) {
+                isValidProduct = false;
+                return;
+              }
+            }
+            if (isValidProduct) {
+              offers.push(offer);
+            }
           }
         }
       });
@@ -119,8 +134,8 @@ async function sendMessage(id, title, price, store, link) {
     .setTimestamp()
     .setColor('#0099ff');
   try {
-    hook.send(embed);
     insert(id, link);
+    hook.send(embed);
   } catch (error) {
     console.error(error);
   }
