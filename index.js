@@ -128,7 +128,7 @@ async function sendMessage(id, title, price, store, link) {
 
 async function connect() {
   try {
-    conn = await new Client({connectionString: "postgres://orpphmrnkjqkto:66c684e4944b3f43bde35966ca862a4fcd00b98201217e336ffcc5bb9229539c@ec2-107-20-104-234.compute-1.amazonaws.com:5432/d99had9kr8arqi"});
+    conn = await new Client({connectionString: process.env.DATABASE_URL});
     await conn.connect();
   } catch (error) {
     console.log(error);
@@ -136,12 +136,9 @@ async function connect() {
 }
 
 async function insert(id, link) {
-  if (!conn) {
-    return;
-  }
   try {
     let { rows } = await conn.query(
-      `insert into ${process.env.POSTGRE_TABLE} (id, link, created_at) values (${id}, ${link}, ${Date.now()}) returning *`
+      `insert into ${process.env.POSTGRE_TABLE} (id, link, created_at) values (${id}, ${link}, ${Date.now()})`
     );
     return rows;
   } catch (error) {
@@ -150,9 +147,6 @@ async function insert(id, link) {
 }
 
 async function findPromo(id) {
-  if (!conn) {
-    return;
-  }
   try {
     let { rows } = await conn.query(`select * from ${process.env.POSTGRE_TABLE} where id = ${id}`);
     return rows;
