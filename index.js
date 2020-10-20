@@ -112,12 +112,12 @@ var c = new Crawler({
           }
         }
       });
-      //TODO: Adicionar tratamento de "categorias".
+      console.log(offers);
       offers.forEach(offer => {
         setTimeout(() => {
           sendMessage(offer.id, offer.description, offer.lowPrice, offer.store, offer.link);
         }, 1000);
-      })
+      });
     }
     done();
   }
