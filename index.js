@@ -23,7 +23,8 @@ const HOT_KEYS = [
   "ddr4", "computador"];
 
 const EXCLUDE_KEYS = [
-  "panela", "panelas", "taça", "taças"
+  "panela", "panelas", "taça", "taças", "pia", "cozinha",
+  "talher", "talheres"
 ]
 
 hook.setUsername('Promo Bot');
