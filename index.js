@@ -138,7 +138,7 @@ async function connect() {
 function insert(id, link) {
   conn.query({
     text: `insert into promo_read(id, link, created_at) values ($1, $2, $3)`,
-    values: [id, link, Date.now()]
+    values: [id, link, Date()]
   }).then(res => {
     return res;
   }).catch(error => {
