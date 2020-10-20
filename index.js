@@ -14,12 +14,12 @@ let pool;
 
 const HOT_KEYS = [
   "placa de vídeo", "placa mãe", "ssd",
-  "processador", "celular", "smarphone",
+  "processador", "celular", "smartphone",
   "caixa de som", "jogo", "fonte", "notebook",
   "teclado", "mouse", "gabinete", "hd",
-  "kit upgrade","ram", "placa-mãe", "smart tv",
+  "kit upgrade","memória ram", "placa-mãe", "smart tv",
   "pilha", "headset", "monitor", "mousepad", 
-  "headphone", "pc gamer"];
+  "headphone", "pc gamer", 'fone de ouvido', 'smartwatch'];
 
 const EXCLUDE_KEYS = [
   "panela", "panelas"
@@ -94,25 +94,28 @@ var c = new Crawler({
           });
           if (offer.link) {
             let isValidProduct = false;
+            // console.log(offer.description.toLowerCase());
             for (const key of HOT_KEYS) {
               if (offer.description.toLowerCase().includes(key)) {
                 isValidProduct = true;
-                return;
+                break;
               }
             }
+            // console.log(isValidProduct);
             for (const key of EXCLUDE_KEYS) {
               if (offer.description.toLowerCase().includes(key)) {
                 isValidProduct = false;
-                return;
+                break;
               }
             }
+            // console.log(isValidProduct);
             if (isValidProduct) {
               offers.push(offer);
             }
           }
         }
       });
-      console.log(offers);
+      // console.log(offers);
       offers.forEach(offer => {
         setTimeout(() => {
           sendMessage(offer.id, offer.description, offer.lowPrice, offer.store, offer.link);
@@ -125,25 +128,34 @@ var c = new Crawler({
 
 async function sendMessage(id, title, price, store, link) {
   const promoChecked = await findPromo(id);
-  if (promoChecked) return;
-
-  const embed = new MessageBuilder()
-    .setTitle(title)
-    .setURL(link)
-    .setDescription(`Promoção cadastrada com valor de R$ ${price}, na loja ${store}`)
-    .setTimestamp()
-    .setColor('#0099ff');
-  try {
-    insert(id, link);
-    hook.send(embed);
-  } catch (error) {
-    console.error(error);
+  if (promoChecked.rowCount > 0) {
+    return
+  } else {
+    const embed = new MessageBuilder()
+      .setTitle(title)
+      .setURL(link)
+      .addField('Valor', `R$ ${price}`, true)
+      .addField('Loja', store, true)
+      .setTimestamp()
+      .setColor('#0099ff');
+    try {
+      insert(id, link);
+      hook.send(embed);
+    } catch (error) {
+      console.error(error);
+    }
   }
+
 }
 
 async function connect() {
   try {
-    conn = await new Client({connectionString: process.env.DATABASE_URL});
+    conn = await new Client({
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    });
     await conn.connect();
   } catch (error) {
     console.log(error);
@@ -162,18 +174,15 @@ function insert(id, link) {
 }
 
 function findPromo(id) {
-  conn.query({
-    text: `select * from promo_read where id = $1`,
-    values: [id]
-  }).then(res => {
-    return res;
-  }).catch(error => {
-    console.error(error);
-  });
+  return conn.query(`select * from promo_read where id = ${id}`)
+    .then(res => {
+      return res;
+    }).catch(error => {
+      console.error(error);
+    });
 }
 
 cron.schedule('* 5 * * *', function() {
-  console.log('running a task every hour');
   c.queue('https://www.promobit.com.br/');
 });
 c.queue('https://www.promobit.com.br/');
