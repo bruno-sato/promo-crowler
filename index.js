@@ -24,10 +24,11 @@ const HOT_KEYS = [
 
 const EXCLUDE_KEYS = [
   "panela", "panelas", "taça", "taças", "pia", "cozinha",
-  "talher", "talheres"
+  "talher", "talheres", "cama"
 ]
 
 hook.setUsername('Promo Bot');
+hook.setAvatar('https://media.discordapp.net/attachments/435528937381036053/768190466025455616/magofone640.jpg')
 
 app = express();
 // * * * * * *
