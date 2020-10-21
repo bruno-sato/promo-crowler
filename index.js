@@ -15,18 +15,19 @@ let pool;
 const HOT_KEYS = [
   "placa de vídeo", "placa mãe", "ssd",
   "processador", "celular", "smartphone",
-  "caixa de som", "jogo", "fonte", "notebook",
+  "caixa de som", "fonte", "notebook",
   "teclado", "mouse", "gabinete", "hd",
   "kit upgrade","memória ram", "placa-mãe", "smart tv",
   "pilha", "headset", "monitor", "mousepad", 
   "headphone", "pc gamer", 'fone de ouvido', 'smartwatch',
-  "ddr4", "computador"];
+  "ddr4", "computador", "steam", "xbox", "ps4", "ps5", 
+  "origin", "nuuvem", "epic", "pc gog"];
 
 const EXCLUDE_KEYS = [
-  "panela", "panelas", "taça", "taças", "pia", "cozinha",
-  "talher", "talheres", "cama", "xícara", "xícaras", "mesa",
-  "mesas", "cueca", "cuecas", "meia", "meias", "toalha", "toalhas",
-  "adesivo", "adesivos", "pneus", "pneu"
+  // "panela", "panelas", "taça", "taças", "pia", "cozinha",
+  // "talher", "talheres", "cama", "xícara", "xícaras", "mesa",
+  // "mesas", "cueca", "cuecas", "meia", "meias", "toalha", "toalhas",
+  // "adesivo", "adesivos", "pneus", "pneu"
 ]
 
 hook.setUsername('Promo Bot');
