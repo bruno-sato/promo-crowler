@@ -24,7 +24,7 @@ const HOT_KEYS = [
 
 const EXCLUDE_KEYS = [
   "panela", "panelas", "taça", "taças", "pia", "cozinha",
-  "talher", "talheres", "cama"
+  "talher", "talheres", "cama", "xícara", "xícaras"
 ]
 
 hook.setUsername('Promo Bot');
