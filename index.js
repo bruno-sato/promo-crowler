@@ -26,7 +26,7 @@ const EXCLUDE_KEYS = [
   "panela", "panelas", "taça", "taças", "pia", "cozinha",
   "talher", "talheres", "cama", "xícara", "xícaras", "mesa",
   "mesas", "cueca", "cuecas", "meia", "meias", "toalha", "toalhas",
-  "adesivo", "adesivos"
+  "adesivo", "adesivos", "pneus", "pneu"
 ]
 
 hook.setUsername('Promo Bot');
